@@ -6,6 +6,9 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var leaderRouter = require('./routes/leader-router');
+var promoRouter = require('./routes/promo-router');
+var dishRouter = require('./routes/dish-router');
 
 var app = express();
 
@@ -17,7 +20,10 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname+'/public')));
+app.use('/dishes',dishRouter);
+app.use('/promotions',promoRouter);
+app.use('/leaders',leaderRouter);
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
