@@ -38,47 +38,33 @@ app.use(session({
 	store: new fileStore()
 }));
 
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 function auth(req, res, next){
 	console.log(req.session);
 	if(!req.session.user){
 
 
-	var authHeader = req.headers.authorization;
-	if(!authHeader){
+	
 		var err= new Error('You are not authenticated!');
 		res.setHeader('WWW-Authenticate', 'Basic');
 		err.status=401;
 		return next(err);
 
 	}
-	var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(":");
-	var username = auth[0];
-	var password = auth[1];
-
-	if(username === 'admin' && password === 'password'){
-		req.session.user='admin';
-		next();
+	else
+	{
+		if(req.session.user==='authenticated'){
+			next();
+		}
+		else{
+			var err=new Error('You are not authenticated');
+			err.status= 403;
+			next(err);
+		}
 	}
-
-	else{
-		var err = new Error('Username and password not correct');
-		res.setHeader('WWW-Authenticate','Basic');
-		err.status=401;
-		return next(err);
-	}
-}
-else{
-	if(req.session.user==='admin'){
-		next();
-	}
-	else{
-		var err= new Error('You are not authenticated!');
-		
-		err.status=401;
-		return next(err);
-
-	}
-}
+	
 
 }
 
@@ -90,8 +76,7 @@ app.use('/dishes',dishRouter);
 app.use('/promotions',promoRouter);
 app.use('/leaders',leaderRouter);
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
