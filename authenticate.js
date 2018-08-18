@@ -39,3 +39,13 @@ exports.jwtPassport= passport.use(new JwtStrategy(opts, (jwt_payload, done)=>{
 }));
 
 exports.verifyUser= passport.authenticate('jwt', {session: false});
+
+exports.verifyAdmin = (user)=>{
+	User.find({'username': user.username}).then((userfound)=>{
+		console.log('found user with id : ',userfound.firstname);
+		return userfound.admin==true;
+	},(err)=> next(err))
+	.catch((err)=> next(err));
+
+	
+}

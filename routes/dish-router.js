@@ -17,6 +17,11 @@ dishRouter.route('/').get((req, res, next)=>{
 	}, (err) => next(err))
 	.catch((err)=> next(err));
 }).post(authenticate.verifyUser, (req, res, next)=> {
+	if(!authenticate.verifyAdmin(req.user)){
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
 	
 	Dishes.create(req.body)
 	.then((dish)=>{
@@ -26,11 +31,16 @@ dishRouter.route('/').get((req, res, next)=>{
 		res.json(dish);
 	}, (err)=> next(err))
 	.catch((err) => next(err));
-}).put(authenticate.verifyUser,(req, res, next)=> {
+}).put(authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
 	res.end('PUT not supported on /dishes');
 	
-}).delete(authenticate.verifyUser,(req, res, next)=> {
+}).delete(authenticate.verifyUser, (req, res, next)=> {
+	if(!authenticate.verifyAdmin(req.user)){
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
 	Dishes.remove({})
 	.then((resp)=> {
 		res.statusCode=200;
@@ -49,10 +59,16 @@ dishRouter.route("/:dishId").get((req, res, next)=>{
 		res.json(dish);
 	}, (err)=> next(err))
 	.catch((err)=> next(err));
-}).post(authenticate.verifyUser,(req, res, next)=> {
+}).post(authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
 	res.end('POST not supported on dishes/'+req.params.dishId);
-}).put(authenticate.verifyUser,(req, res, next)=> {
+}).put(authenticate.verifyUser, (req, res, next)=> {
+	if(!authenticate.verifyAdmin(req.user)){
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
+	
 	Dishes.findByIdAndUpdate(req.params.dishId, {$set: req.body}, {new : true})
 	.then((dish)=>{
 		res.statusCode=200;
@@ -61,7 +77,13 @@ dishRouter.route("/:dishId").get((req, res, next)=>{
 	}, (err)=> next(err))
 	.catch((err)=> next(err));
 	
-}).delete(authenticate.verifyUser,(req, res, next)=> {
+}).delete(authenticate.verifyUser, (req, res, next)=> {
+	if(!authenticate.verifyAdmin(req.user)){
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
+	
 	Dishes.findByIdAndRemove(req.params.dishId)
 	.then((resp)=> {
 		res.statusCode=200;
@@ -112,6 +134,7 @@ dishRouter.route('/:dishId/comments').get((req, res, next)=>{
 	}, (err)=> next(err))
 	.catch((err) => next(err));
 }).put(authenticate.verifyUser,(req, res, next)=> {
+
 	res.statusCode=405;
 	res.end('PUT not supported on /dishes/'+req.params.dishId+'/comments');
 	
@@ -168,8 +191,15 @@ dishRouter.route("/:dishId/comments/:commentId").get((req, res, next)=>{
 	.catch((err)=> next(err));
 }).post(authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
+
 	res.end('POST not supported on dishes/'+req.params.dishId+'/comments/'+req.params.commentId);
 }).put(authenticate.verifyUser, (req, res, next)=> {
+	if(req.user._id!= dish.comments.id(req.params.commentId).author){
+		res.statusCode=403;
+		
+		res.end('User unauthenticated');
+		return;
+	}
 	Dishes.findById(req.params.dishId)
 	.then((dish)=>{
 		if(dish!=null && dish.comments.id(req.params.commentId)!=null){
@@ -203,6 +233,12 @@ dishRouter.route("/:dishId/comments/:commentId").get((req, res, next)=>{
 	.catch((err)=> next(err));
 	
 }).delete(authenticate.verifyUser, (req, res, next)=> {
+	if(req.user._id!= dish.comments.id(req.params.commentId).author){
+		res.statusCode=403;
+		
+		res.end('User unauthenticated');
+		return;
+	}
 	Dishes.findById(req.params.dishId)
 	.then((dish)=>{
 		if(dish!=null && dish.comments.id(req.params.commentId)!=null){

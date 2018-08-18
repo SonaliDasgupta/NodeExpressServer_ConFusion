@@ -14,6 +14,11 @@ promoRouter.route("/").get((req, res, next)=>{
 	},(err)=> next(err))
 	.catch((err)=> next(err));
 }).post(authenticate.verifyUser, (req, res, next)=> {
+	if(!authenticate.verifyAdmin(req.user)){
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
 	Promotions.create(req.body)
 	.then((promo)=>{
 		res.statusCode=200;
@@ -26,6 +31,11 @@ promoRouter.route("/").get((req, res, next)=>{
 	res.end('PUT not supported on /promotions');
 	
 }).delete(authenticate.verifyUser, (req, res, next)=> {
+	if(!authenticate.verifyAdmin(req.user)){
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
 	Promotions.remove({})
 	.then((resp)=>{
 		res.statusCode=200;
@@ -44,9 +54,16 @@ promoRouter.route("/:prId").get((req, res, next)=>{
 	},(err)=>next(err))
 	.catch((err)=> next(err));
 }).post(authenticate.verifyUser, (req, res, next)=> {
+
 	res.statusCode=405;
 	res.end('POST not supported on /promotions/'+req.params.prId);
 }).put(authenticate.verifyUser, (req, res, next)=> {
+	if(!authenticate.verifyAdmin(req.user)){
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
+	
 	Promotions.findByIdAndUpdate(req.params.prId, {$set: req.body}, {new: true})
 	.then((promo)=>{
 		res.statusCode= 200;
@@ -55,7 +72,13 @@ promoRouter.route("/:prId").get((req, res, next)=>{
 	},(err)=>next(err))
 	.catch((err)=> next(err));
 	
-}).delete(authenticate.verifyUser, (req, res, next)=> {
+}).delete(authenticate.verifyUser,  (req, res, next)=> {
+	if(!authenticate.verifyAdmin(req.user)){
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
+	
 	Promotions.findByIdAndRemove(req.params.prId)
 	.then((resp)=> {
 		res.statusCode = 200;

@@ -9,15 +9,21 @@ router.use(bodyParser.json());
 
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
- res.send('Can view user list only if you are an admin');
- /* User.find({})
+router.get('/', (req, res, next) => {
+ //res.send('Can view user list only if you are an admin');
+ if(!authenticate.verifyAdmin(req.body)){
+ 		console.log(req.body);
+		res.statusCode=403;
+		res.end('Unauthorized : need admin rights');
+		return;
+	}
+  User.find({})
 	.then((users)=>{
 		res.statusCode=200;
 		res.setHeader('Content-Type','application/json');
 		res.json(users);
 	}, (err) => next(err))
-	.catch((err)=> next(err));*/
+	.catch((err)=> next(err));
 });
 
 router.post('/signup', (req, res, next)=>{
