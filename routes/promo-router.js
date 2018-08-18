@@ -1,5 +1,6 @@
 const express= require('express');
 const bodyParser = require('body-parser');
+const authenticate= require('../authenticate');
 
 const promoRouter = express.Router();
 const Promotions = require('../models/promotions');
@@ -12,7 +13,7 @@ promoRouter.route("/").get((req, res, next)=>{
 		res.json(promos);
 	},(err)=> next(err))
 	.catch((err)=> next(err));
-}).post((req, res, next)=> {
+}).post(authenticate.verifyUser, (req, res, next)=> {
 	Promotions.create(req.body)
 	.then((promo)=>{
 		res.statusCode=200;
@@ -20,11 +21,11 @@ promoRouter.route("/").get((req, res, next)=>{
 		res.json(promo);
 	},(err)=>next(err))
 	.catch((err)=> console.log(err));
-}).put((req, res, next)=> {
+}).put(authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
 	res.end('PUT not supported on /promotions');
 	
-}).delete((req, res, next)=> {
+}).delete(authenticate.verifyUser, (req, res, next)=> {
 	Promotions.remove({})
 	.then((resp)=>{
 		res.statusCode=200;
@@ -42,10 +43,10 @@ promoRouter.route("/:prId").get((req, res, next)=>{
 		res.json(promo);
 	},(err)=>next(err))
 	.catch((err)=> next(err));
-}).post((req, res, next)=> {
+}).post(authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
 	res.end('POST not supported on /promotions/'+req.params.prId);
-}).put((req, res, next)=> {
+}).put(authenticate.verifyUser, (req, res, next)=> {
 	Promotions.findByIdAndUpdate(req.params.prId, {$set: req.body}, {new: true})
 	.then((promo)=>{
 		res.statusCode= 200;
@@ -54,7 +55,7 @@ promoRouter.route("/:prId").get((req, res, next)=>{
 	},(err)=>next(err))
 	.catch((err)=> next(err));
 	
-}).delete((req, res, next)=> {
+}).delete(authenticate.verifyUser, (req, res, next)=> {
 	Promotions.findByIdAndRemove(req.params.prId)
 	.then((resp)=> {
 		res.statusCode = 200;
