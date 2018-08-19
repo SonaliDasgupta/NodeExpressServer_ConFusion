@@ -4,6 +4,7 @@ var bodyParser= require('body-parser');
 var User= require('../models/users');
 var passport= require('passport');
 var authenticate= require('../authenticate');
+var userLoggedin=null;
 
 router.use(bodyParser.json());
 
@@ -11,8 +12,8 @@ router.use(bodyParser.json());
 /* GET users listing. */
 router.get('/', (req, res, next) => {
  //res.send('Can view user list only if you are an admin');
- if(!authenticate.verifyAdmin(req.body)){
- 		console.log(req.body);
+ if(userLoggedin==null || !authenticate.verifyAdmin(userLoggedin)){
+ 		
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');
 		return;
@@ -60,6 +61,7 @@ router.post('/signup', (req, res, next)=>{
 	
 
 router.post('/login', passport.authenticate('local'), (req, res)=>{
+	userLoggedin= req.user;
 	var token =authenticate.getToken({_id: req.user._id});
 	res.statusCode=200;
 	res.setHeader('Content-Type','application/json');
@@ -68,6 +70,7 @@ router.post('/login', passport.authenticate('local'), (req, res)=>{
 });
 
 router.get('/logout',(req, res,next)=>{
+	userLoggedin=  null;
 	if(req.session){
 		req.session.destroy();
 		res.clearCookie('session-id');

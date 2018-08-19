@@ -18,6 +18,7 @@ dishRouter.route('/').get((req, res, next)=>{
 	.catch((err)=> next(err));
 }).post(authenticate.verifyUser, (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
+		console.log("User: ",req.user);
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');
 		return;
@@ -194,14 +195,19 @@ dishRouter.route("/:dishId/comments/:commentId").get((req, res, next)=>{
 
 	res.end('POST not supported on dishes/'+req.params.dishId+'/comments/'+req.params.commentId);
 }).put(authenticate.verifyUser, (req, res, next)=> {
-	if(req.user._id!= dish.comments.id(req.params.commentId).author){
+	
+	Dishes.findById(req.params.dishId)
+	.then((dish)=>{
+
+		if(!(req.user._id.equals(dish.comments.id(req.params.commentId).author))){
+			console.log("User is ",req.user._id);
+			console.log("Author is ",dish.comments.id(req.params.commentId).author)
 		res.statusCode=403;
 		
 		res.end('User unauthenticated');
 		return;
 	}
-	Dishes.findById(req.params.dishId)
-	.then((dish)=>{
+
 		if(dish!=null && dish.comments.id(req.params.commentId)!=null){
 			if(req.body.rating){
 				dish.comments.id(req.params.commentId).rating= req.body.rating;
@@ -233,14 +239,15 @@ dishRouter.route("/:dishId/comments/:commentId").get((req, res, next)=>{
 	.catch((err)=> next(err));
 	
 }).delete(authenticate.verifyUser, (req, res, next)=> {
-	if(req.user._id!= dish.comments.id(req.params.commentId).author){
+	
+	Dishes.findById(req.params.dishId)
+	.then((dish)=>{
+		if(!(req.user._id.equals(dish.comments.id(req.params.commentId).author))){
 		res.statusCode=403;
 		
 		res.end('User unauthenticated');
 		return;
 	}
-	Dishes.findById(req.params.dishId)
-	.then((dish)=>{
 		if(dish!=null && dish.comments.id(req.params.commentId)!=null){
 			dish.comments.id(req.params.commentId).remove();
 			dish.save().then((dish)=>  {
