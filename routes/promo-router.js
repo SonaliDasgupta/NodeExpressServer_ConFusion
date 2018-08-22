@@ -1,11 +1,14 @@
 const express= require('express');
 const bodyParser = require('body-parser');
 const authenticate= require('../authenticate');
+const cors= require('./cors');
 
 const promoRouter = express.Router();
 const Promotions = require('../models/promotions');
 promoRouter.use(bodyParser.json());
-promoRouter.route("/").get((req, res, next)=>{
+promoRouter.route("/")
+.options(cors.corsWithOptions, (req, res)=>{ res.sendStatus(200); })
+.get(cors.cors, (req, res, next)=>{
 	Promotions.find({})
 	.then((promos)=>{
 		res.statusCode=200;
@@ -13,7 +16,7 @@ promoRouter.route("/").get((req, res, next)=>{
 		res.json(promos);
 	},(err)=> next(err))
 	.catch((err)=> next(err));
-}).post(authenticate.verifyUser, (req, res, next)=> {
+}).post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');
@@ -26,11 +29,11 @@ promoRouter.route("/").get((req, res, next)=>{
 		res.json(promo);
 	},(err)=>next(err))
 	.catch((err)=> console.log(err));
-}).put(authenticate.verifyUser, (req, res, next)=> {
+}).put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
 	res.end('PUT not supported on /promotions');
 	
-}).delete(authenticate.verifyUser, (req, res, next)=> {
+}).delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');
@@ -45,7 +48,9 @@ promoRouter.route("/").get((req, res, next)=>{
 	.catch((err)=>next(err));
 });
 
-promoRouter.route("/:prId").get((req, res, next)=>{
+promoRouter.route("/:prId")
+.options(cors.corsWithOptions, (req,res)=> {res.sendStatus(200); })
+.get(cors.cors, (req, res, next)=>{
 	Promotions.findById(req.params.prId)
 	.then((promo)=>{
 		res.statusCode = 200;
@@ -53,11 +58,11 @@ promoRouter.route("/:prId").get((req, res, next)=>{
 		res.json(promo);
 	},(err)=>next(err))
 	.catch((err)=> next(err));
-}).post(authenticate.verifyUser, (req, res, next)=> {
+}).post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 
 	res.statusCode=405;
 	res.end('POST not supported on /promotions/'+req.params.prId);
-}).put(authenticate.verifyUser, (req, res, next)=> {
+}).put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');
@@ -72,7 +77,7 @@ promoRouter.route("/:prId").get((req, res, next)=>{
 	},(err)=>next(err))
 	.catch((err)=> next(err));
 	
-}).delete(authenticate.verifyUser,  (req, res, next)=> {
+}).delete(cors.corsWithOptions,  authenticate.verifyUser,  (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');

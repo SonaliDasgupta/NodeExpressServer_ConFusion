@@ -2,12 +2,15 @@ const express= require('express');
 const bodyParser= require('body-parser');
 const mongoose=require('mongoose');
 const authenticate = require('../authenticate');
+const cors= require('./cors');
 
 const Dishes= require('../models/dishes');
 const dishRouter= express.Router();
 dishRouter.use(bodyParser.json());
 
-dishRouter.route('/').get((req, res, next)=>{
+dishRouter.route('/')
+.options(cors.corsWithOptions, (req, res)=>{ res.sendStatus(200); })
+.get(cors.cors, (req, res, next)=>{
 	Dishes.find({})
 	.populate('comments.author')
 	.then((dishes)=>{
@@ -16,7 +19,7 @@ dishRouter.route('/').get((req, res, next)=>{
 		res.json(dishes);
 	}, (err) => next(err))
 	.catch((err)=> next(err));
-}).post(authenticate.verifyUser, (req, res, next)=> {
+}).post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
 		console.log("User: ",req.user);
 		res.statusCode=403;
@@ -32,11 +35,11 @@ dishRouter.route('/').get((req, res, next)=>{
 		res.json(dish);
 	}, (err)=> next(err))
 	.catch((err) => next(err));
-}).put(authenticate.verifyUser, (req, res, next)=> {
+}).put(cors.corsWithOptions,authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
 	res.end('PUT not supported on /dishes');
 	
-}).delete(authenticate.verifyUser, (req, res, next)=> {
+}).delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');
@@ -51,7 +54,8 @@ dishRouter.route('/').get((req, res, next)=>{
 	.catch((err)=> next(err));
 });
 
-dishRouter.route("/:dishId").get((req, res, next)=>{
+dishRouter.route("/:dishId").options(cors.corsWithOptions, (req, res)=>{ res.sendStatus(200); })
+.get(cors.cors, (req, res, next)=>{
 	Dishes.findById(req.params.dishId)
 	.populate('comments.author')
 	.then((dish)=>{
@@ -60,10 +64,10 @@ dishRouter.route("/:dishId").get((req, res, next)=>{
 		res.json(dish);
 	}, (err)=> next(err))
 	.catch((err)=> next(err));
-}).post(authenticate.verifyUser, (req, res, next)=> {
+}).post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
 	res.end('POST not supported on dishes/'+req.params.dishId);
-}).put(authenticate.verifyUser, (req, res, next)=> {
+}).put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');
@@ -78,7 +82,7 @@ dishRouter.route("/:dishId").get((req, res, next)=>{
 	}, (err)=> next(err))
 	.catch((err)=> next(err));
 	
-}).delete(authenticate.verifyUser, (req, res, next)=> {
+}).delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	if(!authenticate.verifyAdmin(req.user)){
 		res.statusCode=403;
 		res.end('Unauthorized : need admin rights');
@@ -94,7 +98,8 @@ dishRouter.route("/:dishId").get((req, res, next)=>{
 	.catch((err)=> next(err));
 });
 
-dishRouter.route('/:dishId/comments').get((req, res, next)=>{
+dishRouter.route('/:dishId/comments').options(cors.corsWithOptions, (req, res)=>{ res.sendStatus(200); })
+.get(cors.cors, (req, res, next)=>{
 	Dishes.findById(req.params.dishId)
 	.populate('comments.author')
 	.then((dish)=>{
@@ -111,7 +116,7 @@ dishRouter.route('/:dishId/comments').get((req, res, next)=>{
 
 	}, (err) => next(err))
 	.catch((err)=> next(err));
-}).post(authenticate.verifyUser,(req, res, next)=> {
+}).post(cors.corsWithOptions, authenticate.verifyUser,(req, res, next)=> {
 
 	Dishes.findById(req.params.dishId)
 	.then((dish)=>{
@@ -134,12 +139,12 @@ dishRouter.route('/:dishId/comments').get((req, res, next)=>{
 		}
 	}, (err)=> next(err))
 	.catch((err) => next(err));
-}).put(authenticate.verifyUser,(req, res, next)=> {
+}).put(cors.corsWithOptions, authenticate.verifyUser,(req, res, next)=> {
 
 	res.statusCode=405;
 	res.end('PUT not supported on /dishes/'+req.params.dishId+'/comments');
 	
-}).delete(authenticate.verifyUser, (req, res, next)=> {
+}).delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	Dishes.findById(req.params.dishId)
 	.then((dish)=> {
 		if(dish!=null){
@@ -167,7 +172,8 @@ dishRouter.route('/:dishId/comments').get((req, res, next)=>{
 	.catch((err)=> next(err));
 });
 
-dishRouter.route("/:dishId/comments/:commentId").get((req, res, next)=>{
+dishRouter.route("/:dishId/comments/:commentId").options(cors.corsWithOptions, (req, res)=>{ res.sendStatus(200); })
+.get(cors.cors, (req, res, next)=>{
 	Dishes.findById(req.params.dishId)
 	.populate('comments.author')
 	.then((dish)=>{
@@ -190,11 +196,11 @@ dishRouter.route("/:dishId/comments/:commentId").get((req, res, next)=>{
 
 	}, (err)=> next(err))
 	.catch((err)=> next(err));
-}).post(authenticate.verifyUser, (req, res, next)=> {
+}).post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	res.statusCode=405;
 
 	res.end('POST not supported on dishes/'+req.params.dishId+'/comments/'+req.params.commentId);
-}).put(authenticate.verifyUser, (req, res, next)=> {
+}).put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	
 	Dishes.findById(req.params.dishId)
 	.then((dish)=>{
@@ -238,7 +244,7 @@ dishRouter.route("/:dishId/comments/:commentId").get((req, res, next)=>{
 	}, (err)=> next(err))
 	.catch((err)=> next(err));
 	
-}).delete(authenticate.verifyUser, (req, res, next)=> {
+}).delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=> {
 	
 	Dishes.findById(req.params.dishId)
 	.then((dish)=>{
