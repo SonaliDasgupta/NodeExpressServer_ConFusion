@@ -19,26 +19,65 @@ favoritesRouter.route('/')
 	.populate('dishes')
 	.then((favorite)=>{
 		//console.log("user : "+req.user._id+" type: "+typeof(req.user._id));
-		
+		if(favorite!=null){
 		console.log("for username: "+favorite.user.username);
 		res.statusCode=200;
 		res.setHeader('Content-Type','application/json');
 		res.json(favorite);
 	}
+	else{
+		res.statusCode=200;
+		res.end('You have no favorites');
+	}
+	}
 	
 	, (err) => next(err)).catch((err)=> next(err));
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=>{
-	res.statusCode= 405;
-	res.end('POST not allowed on /favorites endpoint'); //POPULATE THIS WITH THE ARRAY IN DISHES REQUEST BODY
+	Favorites.findOne({user: req.user})
+	.then((favorite)=>{
+	if(favorite==null){
+		Favorites.create({user: req.user}).then((favorite)=>{
+			for(var i=0; i< req.body.length; i++){
+		favorite.dishes.push(req.body[i]);
+	}
+	favorite.save().then((favorite)=>{
+		res.statusCode=200;
+		res.setHeader('Content-Type','application/json');
+		res.json(favorite);
+	},(err)=> next(err))
+	.catch((err)=> next(err));
+	},(err)=>next(err))
+	.catch((err)=>next(err));	
+		}
+		else{
+	for(var i=0; i< req.body.length; i++){
+		favorite.dishes.push(req.body[i]);
+	}
+	favorite.save().then((favorite)=>{
+		res.statusCode=200;
+		res.setHeader('Content-Type','application/json');
+		res.json(favorite);
+	},(err)=> next(err))
+	.catch((err)=>next(err))
+}
+	
+},((err)=>next(err)))
+	.catch((err)=>next(err));
 })
 .put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=>{
 	res.statusCode= 405;
 	res.end('PUT not allowed on /favorites endpoint');
 })
 .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next)=>{
-	res.statusCode= 405;
-	res.end('DELETE not allowed on /favorites endpoint');
+	
+	Favorites.remove({user: req.user}).then((favorite)=>{
+		res.statusCode= 200;
+		res.setHeader('Content-Type','application/json');
+		res.json(favorite);
+
+}, (err)=> next(err))
+	.catch((err)=> next(err));
 });
 
 
