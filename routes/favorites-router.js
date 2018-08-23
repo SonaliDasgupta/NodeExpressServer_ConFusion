@@ -88,19 +88,29 @@ favoritesRouter.route('/:dishId')
 	.populate('user')
 	.populate('dishes').then((favorite)=>{
 		
-				
-				for(var j=0; j<favorite.dishes.length;j++){
-					if(favorite.dishes[j]._id.equals(req.params.dishId)){
-						res.statusCode= 200;
-						res.setHeader('Content-Type','application/json');
-						res.json(favorite.dishes[j]);
-						return;
-					}
-				}
-				
-					res.statusCode=403;
-					
-					res.end('Could not find the dish in your favorites list');
+
+					Favorites.findOne({user: req.user._id})
+					.then((favorites)=>{
+						if(!favorites){
+							res.statusCode=200;
+							res.setHeader('Content-Type','application/json');
+							return res.json({"exists":false, "favorites": favorites});
+						}
+						else{
+							if(favorites.dishes.indexOf(req.params.dishId)<0){
+								res.statusCode=200;
+								res.setHeader('Content-Type','application/json');
+								return res.json({"exists":false, "favorites": favorites});
+							}
+							else{
+								res.statusCode=200;
+								res.setHeader('Content-Type','application/json');
+								return res.json({"exists":true, "favorites": favorites});
+							}
+						}
+
+					},(err)=> next(err))
+					.catch((err)=> next(err));
 				
 			}
 		
@@ -152,9 +162,17 @@ favoritesRouter.route('/:dishId')
 				favorite.dishes.remove(req.params.dishId);
 				favorite.save()
 				.then((favorite)=>{
-					res.statusCode=200;
-					res.setHeader('Content-Type','application/json');
-					res.json(favorite);
+					Favorites.findById(favorite._id)
+					.populate('user')
+					.populate('dishes')
+					.then((favorite)=>{
+						res.statusCode=200;
+						res.setHeader('Content-Type','application/json');
+						res.json(favorite);
+
+					},(err)=>next(err))
+					.catch((err)=> next(err));
+					
 				},(err)=> next(err))
 				.catch((err)=> next(err));
 			},(err)=>next(err))

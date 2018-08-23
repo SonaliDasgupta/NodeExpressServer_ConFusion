@@ -125,9 +125,15 @@ dishRouter.route('/:dishId/comments').options(cors.corsWithOptions, (req, res)=>
 		
 		dish.comments.push(req.body);
 		dish.save().then((dish)=>  {
+			Dishes.findById(dish._id)
+			.populate('comments.author')
+			.then((dish)=>{
 			res.statusCode=200;
 			res.setHeader('Content-Type','application/json');
-			res.json(dish);
+			res.json(dish);	
+		}, (err)=> next(err))
+			.catch((err)=>next(err));
+			
 		}, (err)=>next(err))
 		.catch((err)=> next(err));
 		
@@ -223,9 +229,15 @@ dishRouter.route("/:dishId/comments/:commentId").options(cors.corsWithOptions, (
 
 			}
 			dish.save().then((dish)=>  {
-			res.statusCode=200;
-			res.setHeader('Content-Type','application/json');
-			res.json(dish);
+				Dishes.findById(dish._id)
+				.populate('comments.author')
+				.then((dish)=>{
+				res.statusCode=200;
+				res.setHeader('Content-Type','application/json');
+				res.json(dish);	
+				}, (err)=> next(err))
+				.catch((err)=> next(err));
+			
 		}, (err)=>next(err))
 		.catch((err)=> next(err));
 		
@@ -257,12 +269,17 @@ dishRouter.route("/:dishId/comments/:commentId").options(cors.corsWithOptions, (
 		if(dish!=null && dish.comments.id(req.params.commentId)!=null){
 			dish.comments.id(req.params.commentId).remove();
 			dish.save().then((dish)=>  {
-			res.statusCode=200;
-			res.setHeader('Content-Type','application/json');
-			res.json(dish);
+				Dishes.findById(dish._id)
+				.populate('comments.author')
+				.then((dish)=>{
+				res.statusCode=200;
+				res.setHeader('Content-Type','application/json');
+				res.json(dish);	
+				}, (err)=> next(err))
+				.catch((err)=> next(err));
+			
 		}, (err)=>next(err))
 		.catch((err)=> next(err));
-		
 		}
 		else if(dish==null)
 		{
